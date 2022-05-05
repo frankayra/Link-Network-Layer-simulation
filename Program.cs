@@ -80,8 +80,22 @@ namespace Link_layer
         }
 
     }
-    class Program
+    static class Program
     {
+        public static char ToChar(this Value value)
+        {
+            char c = '-';
+            switch (value)
+            {
+                case Value.ZERO:
+                    c = '0';
+                    break;
+                case Value.ONE:
+                    c = '1';
+                    break;              
+            }
+            return c;
+        }
         static void Main(string[] args)
         {
 

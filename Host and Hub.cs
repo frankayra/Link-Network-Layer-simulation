@@ -44,7 +44,7 @@ namespace Link_layer
                     return ValueEmited = enumerator.Current;
                 } else{
                     if (enumerator.MoveNext()){
-                        stCountOut = Manager.SIGNAL_TIME;
+                        stCountOut = Manager.SIGNAL_TIME-1;
                         ValueEmited = enumerator.Current;
                         return ValueEmited;
                     } else{
