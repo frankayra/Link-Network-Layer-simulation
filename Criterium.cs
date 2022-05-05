@@ -10,16 +10,16 @@ namespace Link_layer
     public abstract class Criterium
     {
         public abstract Frame Encrypt(string source_mac, string destiny_mac, string _data_);
-        public Frame Decrypt(Frame encrypted_frame, out bool decrypted, bool force_fix = true)
+        public Frame Decrypt(Frame encrypted_frame, out bool decrypted, out bool correct_frame, bool force_fix = true)
         {
-            Frame result = Decrypt_andTryToFixFrame(encrypted_frame, out decrypted, force_fix);
+            Frame result = Decrypt_andTryToFixFrame(encrypted_frame, out decrypted, out correct_frame, force_fix);
             if(decrypted)
             {
                 return encrypted_frame;
             }
             return null;
         }
-        protected abstract Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, bool force_fix = true);
+        protected abstract Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true);
     }
     public class TwoDimensionalParity : Criterium
     {
@@ -49,16 +49,18 @@ namespace Link_layer
             return encryptedData;
         }
 
-        protected override Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, bool force_fix = true)
+        protected override Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true)
         {
-            #region Separando la trama en "frame" y "verification_bits"
+            Frame result = new Frame();
+
+            #region Separa la trama en "frame" y "verification_bits"
             byte[] frame = encrypted_frame.ListByte().ToArray();
             bool[] bin_frame = Frame.HexToBinary(frame);
             byte[] verification_bytes = encrypted_frame.Verif;
             bool[] verification_bits = Frame.HexToBinary(verification_bytes);
+            #endregion
 
-
-
+            #region Verifica las columnas y las filas con error de paridad
             List<int> columns_error = new List<int>();
             List<int> rows_error = new List<int>();
 
@@ -81,7 +83,48 @@ namespace Link_layer
                 }
                 if (x != verification_bits[8 + k]) rows_error.Add(k);
             }
+            #endregion
 
+            #region Si no hubo error, envia el mismo Frame que recibio
+            if (columns_error.Count == 0)
+            {
+                was_fixed = true;
+                correct_frame = true;
+                return encrypted_frame;
+            }
+            #endregion
+
+            else
+            {
+                if(!force_fix)
+                {
+                    correct_frame = false;
+                    was_fixed = false;
+                    return encrypted_frame;
+                }
+                
+                #region En caso que se requiera arreglarlo, lo hace
+
+                for (int i = 0; i < columns_error.Count; i++)
+                {
+                    for (int j = 0; j < rows_error.Count; j++)
+                    {
+                        bool one = bin_frame[(i * 8) + j];
+
+                        frame[i] += (byte)((one ? -1 : 1) * Math.Pow(2, j));
+                    }
+                }
+
+                for (int i = 0; i < frame.Length; i++)
+                {
+                    result.AddBytes(frame);
+                }
+                #endregion
+
+            }
+            correct_frame = false;
+            was_fixed = (columns_error.Count == 1 || rows_error.Count == 1);
+            return result;
         }
     }
 }

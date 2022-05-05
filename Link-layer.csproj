@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="Criterium.cs" />
     <Compile Include="Dervice.cs" />
     <Compile Include="DisJoin Sets.cs" />
