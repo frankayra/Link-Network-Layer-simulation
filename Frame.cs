@@ -263,5 +263,18 @@ namespace Link_layer
             }
             return s;
         }
+
+        public static bool[] StringBinaryToBinary(string sb)
+        {
+            bool[] result = new bool[sb.Length];
+            for (int i = 0; i<sb.Length;i++)
+            {
+                if (sb[i] == '1')
+                    result[i] = true;
+                else
+                    result[i] = false;
+            }
+            return result;
+        }
     }
 }

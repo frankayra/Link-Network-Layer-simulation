@@ -104,8 +104,10 @@ namespace Link_layer
         }
 
         private void AddFrameToQueue(Frame f){
-            queueOutbox[1].Enqueue(f);
-            //throw new NotImplementedException();
+            foreach (int port in PortsToSend(f.DestinyMAC))
+            {
+                queueOutbox[port].Enqueue(f);
+            }
         }
 
         public override Value Emit(int port = 0)
