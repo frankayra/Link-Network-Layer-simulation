@@ -40,6 +40,7 @@ namespace Link_layer
                 }
                 if (explored) continue;
                 Dictionary<Dervice, bool> current_d_CC = new Dictionary<Dervice, bool>();
+                current_d_CC[current_d] = true;
                 DFS(current_d, current_d_CC);
                 CCs.Add(current_d_CC);
             }
