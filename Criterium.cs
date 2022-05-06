@@ -104,28 +104,24 @@ namespace Link_layer
             else
             {
                 correct_frame = false;
-                if(!force_fix)
+                if(!force_fix || (rows_error.Count > 1 && columns_error.Count > 1))
                 {
                     was_fixed = false;
                     return encrypted_frame;
                 }
-                
-                #region En caso que se requiera arreglarlo, lo hace
 
-                for (int i = 0; i < columns_error.Count; i++)
+                #region Arrelgla el error
+
+                bool fix_column = columns_error.Count == 1;
+                int length = fix_column ? rows_error.Count : columns_error.Count;
+
+                for (int i = 0; i < length; i++)
                 {
-                    for (int j = 0; j < rows_error.Count; j++)
-                    {
-                        bool one = bin_frame[(i * 8) + j];
-
-                        frame[i] += (byte)((one ? -1 : 1) * Math.Pow(2, j));
-                    }
+                    bool one = bin_frame[                  fix_column ?                     rows_error[i] * 8 + columns_error[0] :                          rows_error[0] * 8 + columns_error[i]];       // fix_column ? la fila correspondiente i con la columna prefijada : la columna i correspondiente con la fila ya fijada
+                    frame[fix_column ? rows_error[i] * 8 : rows_error[0] * 8] += (byte)((one ? -1 : 1) * Math.Pow(2, fix_column ? columns_error[0] : columns_error[i]));
                 }
 
-                for (int i = 0; i < frame.Length; i++)
-                {
-                    result.AddBytes(frame);
-                }
+                result.AddBytes(frame);
                 #endregion
 
             }

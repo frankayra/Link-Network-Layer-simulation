@@ -19,6 +19,16 @@ namespace Link_layer
 
             switch (command_[1])
             {
+                case "send_frame":
+                    if (!Manager.DervicesNames.ContainsKey(command_[2])) return false;
+                    if (!(Manager.DervicesNames[command_[2]] is Host)) return false;
+                    if (execute) Send_Frame_Handler((Host)(Manager.DervicesNames[command_[2]]), command_[3], command_[4]);
+                    break;
+                case "mac":
+                    if (!Manager.DervicesNames.ContainsKey(command_[2]) || !(Manager.DervicesNames[command_[2]] is Host)) return false;
+                    if (command_[3].Length != 4) return false;
+                    if(execute)((Host)(Manager.DervicesNames[command_[2]])).MAC = command_[3];
+                    break;
                 case "create":
                     switch (command_[2])
                     {
@@ -35,6 +45,12 @@ namespace Link_layer
                             if (!int.TryParse(command_[4], out ports)) return false;
                             if (execute) Create_Handler(DerviceType.Hub, command_[3], ports);
                             break;
+                        case "switch":
+                            if (Manager.DervicesNames.ContainsKey(command_[3])) return false;
+                            if (!int.TryParse(command_[4], out ports)) return false;
+                            if (execute) Create_Handler(DerviceType.Switch, command_[3], ports);
+                            break;
+
                         default: return false;
                     }
                     return true;
@@ -122,7 +138,9 @@ namespace Link_layer
             Dervice a;
             if (d_type == DerviceType.Host)
                 a = new Host(name);
-            else a = new Hub(ports, name);
+            else if (d_type == DerviceType.Hub)
+                a = new Hub(ports, name);
+            else a = new Switch(ports, name);
             Manager.DervicesNames[name] = a;
             if (Manager.Dervices is null) Manager.Initialize(new List<Dervice>(new Dervice[] { a }), FlowControler.TemporalSIgnalTime);
             Manager.Dervices.AddItem(new Dervice[] { a });
@@ -143,8 +161,12 @@ namespace Link_layer
         {
             pc.Send(emision);
         }
+        private static void Send_Frame_Handler(Host source_host, string destiny_mac, string _data)
+        {
+            source_host.Send(Manager.Error_Protocol.Encrypt(source_host.MAC, destiny_mac, _data));
+        }
 
-        private enum DerviceType { Hub, Host }
+        private enum DerviceType { Hub, Host, Switch}
 
         #endregion
 
