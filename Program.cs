@@ -98,23 +98,8 @@ namespace Link_layer
         }
         static void Main(string[] args)
         {
-            TwoDimensionalParity tsp = new TwoDimensionalParity();
-
-            Frame f = new Frame("AABBCCDD");
-            Console.WriteLine(2.ToString("X"));
-
-            Frame enc = new Frame();
-            Frame dec;
-
-            enc = tsp.Encrypt("CCDD", "AABB","E4"); //E42C
-            Console.WriteLine(enc.ToHex());
-            bool b1, b2;
-            dec = tsp.Decrypt_andTryToFixFrame(enc, was_fixed:out b1,correct_frame: out b2);
-            Console.WriteLine(dec.ToHex());
-            Console.WriteLine(b1);
-            Console.WriteLine(b2);
-
-            Console.ReadKey();
+            
         }
+        
     }
 }
