@@ -64,13 +64,13 @@ namespace Link_layer
         {
             T[] classes = new T[Classes.Count];
             Classes.Keys.CopyTo(classes, 0);
-            for (int i = 0; i < classes.Length; i++)
+            for (int i = 0; i < ValuesSet.Count; i++)
             {
-                for (int k = i + 1; k < classes.Length; k++)
+                for (int k = i + 1; k < ValuesSet.Count; k++)
                 {
-                    if (canMerge(classes[i], classes[k]))
+                    if (canMerge(ValuesSet[i], ValuesSet[k]))
                     {
-                        Merge(classes[i], classes[k]);
+                        Merge(ValuesSet[i], ValuesSet[k]);
                     }
                 }
             }
@@ -86,10 +86,22 @@ namespace Link_layer
 
             if (tree1 == tree2) return;                                                         //Estan en la misma clase
 
-            int heigth1 = Classes[tree1.Value];
-            int heigth2 = Classes[tree2.Value];
+            bool one_go_up = false;
+            bool there_is_a_switch;
+            if (there_is_a_switch = (item1 is Switch || item2 is Switch))
+            {
+                if ((one_go_up = tree2.Value is Switch) && tree1 is Switch) return;
+            }
 
-            bool one_go_up = heigth1 > heigth2;
+            else
+            {
+                int heigth1 = Classes[tree1.Value];
+                int heigth2 = Classes[tree2.Value];
+                one_go_up = heigth1 > heigth2;
+                if (heigth1 == heigth2)
+                    Classes[tree2.Value]++;
+            }
+
             Tree<T> upper = one_go_up ? tree1 : tree2;
             Tree<T> downer = one_go_up ? tree2 : tree1;
 
@@ -98,8 +110,6 @@ namespace Link_layer
             Classes.Remove(downer.Value);
             CCsValues.Remove(downer.Value);
 
-            if (heigth1 == heigth2)
-                Classes[upper.Value]++;
         }
         #endregion
 
@@ -135,6 +145,14 @@ namespace Link_layer
         {
             Tree<T> tree;
             if (!NodeOf.TryGetValue(value, out tree)) return null;
+
+            #region Parche para los Switch
+            if (value is Switch)
+            {
+                return tree;
+            }
+            #endregion
+
             while (tree.Father != null) tree = tree.Father;
             return tree;
         }
@@ -153,16 +171,39 @@ namespace Link_layer
 
         #region Print
 
-        void Print<T>()
+        public static void Print(DisjoinSets<Dervice> D_S)
         {
-            foreach (var par in Classes)
+            //Console.Write("Classes: ");
+            //foreach (var par in Classes)
+            //{
+            //    Console.Write("|" + par.Key + "|");
+            //}
+            //Console.WriteLine("\n\n");
+            //foreach (var item in ValuesSet)
+            //{
+            //    Console.WriteLine(item + " ---> " + ClassRepresentantOf(item).Value);
+            //}
+
+            foreach (var par in D_S.Classes)
             {
-                Console.WriteLine(par.Key);
-            }
-            Console.WriteLine("\n\n");
-            foreach (var item in ValuesSet)
-            {
-                Console.WriteLine(item + " ---> " + ClassRepresentantOf(item).Value);
+                Console.WriteLine("Class: |" + par.Key + "|");
+                Console.WriteLine("-------");
+                foreach (Dervice dervice in D_S.ValuesSet)
+                {
+                    //if(D_S.ClassRepresentantOf(dervice).Value.Equals(par.Key))
+                    //{
+                    //    Console.WriteLine("  |---> " + dervice);
+                    //}
+                    for (int i = 0; i < dervice.Adj.Length; i++)
+                    {
+                        if(dervice.Adj[i] != null && (!D_S.ClassRepresentantOf(dervice.Adj[i]).Value.Equals(dervice)) && D_S.ClassRepresentantOf(dervice.Adj[i]).Value.Equals(par.Key))
+                        {
+                            Console.WriteLine("  |---> " + dervice);
+                            break;
+                        }
+                    }
+                }
+                Console.WriteLine("\n\n");
             }
         }
 
