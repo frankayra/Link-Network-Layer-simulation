@@ -98,44 +98,23 @@ namespace Link_layer
         }
         static void Main(string[] args)
         {
+            TwoDimensionalParity tsp = new TwoDimensionalParity();
 
-            FlowControler.ReadTxt(FlowControler.SCRIPT_PATH);
-            FlowControler.ReadConfig(FlowControler.CONFIG_PATH);
-            //bool simulating = false;
-            //int extra_time = 0;
-            string console_ = "";
-            //while (simulating || (console_ = Console.ReadLine()) != "exit")
-            //{
-            //    if (console_ == "simulate") simulating = true;
+            Frame f = new Frame("AABBCCDD");
+            Console.WriteLine(2.ToString("X"));
 
-            //    if (!FlowControler.MoveNext())
-            //    {
-            //        if(extra_time <= 0)
-            //        {
-            //            Console.Write("Cuantos turnos extras necesita? \n >>> ");
-            //            if (!int.TryParse(Console.ReadLine(), out extra_time) || extra_time <= 0) break;
-            //            continue;
-            //        }
-            //        extra_time--;
-            //    }
-            //}
-            while ((console_ = Console.ReadLine()) != "exit")
-            {
-                int simulate_turns = 0;
+            Frame enc = new Frame();
+            Frame dec;
 
-                if (int.TryParse(console_, out simulate_turns))
-                {
-                    while (simulate_turns > 0)
-                    {
-                        FlowControler.MoveNext();
-                        simulate_turns--;
-                    }
-                }
-                else
-                {
-                    FlowControler.MoveNext();
-                }
-            }
+            enc = tsp.Encrypt("CCDD", "AABB","E4"); //E42C
+            Console.WriteLine(enc.ToHex());
+            bool b1, b2;
+            dec = tsp.Decrypt_andTryToFixFrame(enc, was_fixed:out b1,correct_frame: out b2);
+            Console.WriteLine(dec.ToHex());
+            Console.WriteLine(b1);
+            Console.WriteLine(b2);
+
+            Console.ReadKey();
         }
     }
 }

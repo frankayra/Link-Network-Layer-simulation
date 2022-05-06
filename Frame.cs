@@ -31,6 +31,7 @@ namespace Link_layer
         public byte[] Data => data();
         public string VerifString => verifString();
         public byte[] Verif => verif();
+        public byte[] SimpleFrame => simpleFrame();
 
         private string dataString(){
             string data = "";
@@ -56,10 +57,20 @@ namespace Link_layer
             return verif;
         }
 
+        private byte[] simpleFrame()
+        {
+            byte[] sf = new byte[6 + DataCount];
+            for (int i = 0; i < DataCount + 6; i++)
+            {
+                sf[i] = bytes[i];
+            }
+            return sf;
+        }
+
         private byte[] verif(){
             byte[] verif =  new byte[VerifCount];
             for (int i = 6 + DataCount ; i < VerifCount + DataCount + 6; i++){
-                verif[i-6] = bytes[i];
+                verif[i-6-DataCount] = bytes[i];
             }
             return verif;
         }
@@ -213,6 +224,7 @@ namespace Link_layer
                         binary[indexBinary] = false;
                     }
                     pow /= 2;
+                    indexBinary++;
                 }
             }
             return binary;
@@ -229,12 +241,23 @@ namespace Link_layer
         }
         public static string BinaryToHex(bool[] binary)
         {
-            int dec = 0;
-            for (int i = 0; i < binary.Length; i++)
+            byte dec = 0;
+            string hex = "";
+            int pow = 0;
+            for (int i = binary.Length -1 ; i >=0; i--, pow++)
             {
-                if (binary[binary.Length - i - 1]) dec += (int)Math.Pow(2, i);
+                if (binary[i])
+                    dec += (byte)Math.Pow(2, pow);
+                if (pow >= 7 || i == 0)
+                {
+                    pow = -1;
+                    hex = dec.ToString("X") + hex;
+                    if (dec < 16)
+                        hex = "0" + hex;
+                    dec = 0;
+                }
             }
-            return dec.ToString("X");
+            return hex;
         }
 
         public static string HexToStringBinary(byte[] bytes){

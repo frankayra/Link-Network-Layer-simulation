@@ -10,16 +10,16 @@ namespace Link_layer
     public abstract class Criterium
     {
         public abstract Frame Encrypt(string source_mac, string destiny_mac, string _data_);
-        public Frame Decrypt(Frame encrypted_frame, out bool decrypted, out bool correct_frame, bool force_fix = true)
-        {
-            Frame result = Decrypt_andTryToFixFrame(encrypted_frame, out decrypted, out correct_frame, force_fix);
-            if(decrypted)
-            {
-                return encrypted_frame;
-            }
-            return null;
-        }
-        protected abstract Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true);
+        //public Frame Decrypt(Frame encrypted_frame, out bool decrypted, out bool correct_frame, bool force_fix = true)
+        //{
+        //    Frame result = Decrypt_andTryToFixFrame(encrypted_frame, out decrypted, out correct_frame, force_fix);
+        //    if(decrypted)
+        //    {
+        //        return encrypted_frame;
+        //    }
+        //    return null;
+        //}
+        public abstract Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true);
     }
     public class TwoDimensionalParity : Criterium
     {
@@ -29,10 +29,14 @@ namespace Link_layer
             encryptedData.AddBytes(destiny_mac);
             encryptedData.AddBytes(source_mac);
             encryptedData.AddByte((byte)(_data_.Length / 2));                                           // Convirtiendo de hexadecimal a bytes
-            encryptedData.AddByte((byte)(8 + (_data_.Length / 2)));                                  // La cantidad de columnas(8) + la cantidad de filas(* 4 a bits /8 a filas).
+            byte verifCount = (byte)((12 + _data_.Length) / 2 / 8);
+            verifCount++;
+            if ((_data_.Length / 2) % 8 > 0)            
+                verifCount++;            
+            encryptedData.AddByte(verifCount);                                  // La cantidad de columnas(8) + la cantidad de filas(* 4 a bits /8 a filas).
             encryptedData.AddBytes(_data_);
 
-            bool[] bin_frame = Frame.HexToBinary(source_mac + destiny_mac +(_data_.Length / 2).ToString("X") + (8 + (_data_.Length / 2)).ToString("X") + _data_) ;
+            bool[] bin_frame = Frame.HexToBinary(encryptedData.ToHex());
 
             bool[] columns_verification = new bool[8];
             bool[] rows_verification = new bool[bin_frame.Length / 8];
@@ -44,17 +48,18 @@ namespace Link_layer
                 rows_verification[i / 8] ^= bin_frame[i];
             }
             encryptedData.AddBytes(Frame.BinaryToHex(columns_verification));
+            Console.WriteLine(Frame.BinaryToHex(columns_verification));
             encryptedData.AddBytes(Frame.BinaryToHex(rows_verification));
 
             return encryptedData;
         }
 
-        protected override Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true)
+        public override Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true)
         {
             Frame result = new Frame();
 
             #region Separa la trama en "frame" y "verification_bits"
-            byte[] frame = encrypted_frame.ListByte().ToArray();
+            byte[] frame = encrypted_frame.SimpleFrame;
             bool[] bin_frame = Frame.HexToBinary(frame);
             byte[] verification_bytes = encrypted_frame.Verif;
             bool[] verification_bits = Frame.HexToBinary(verification_bytes);
@@ -66,39 +71,39 @@ namespace Link_layer
 
             for (int i = 0; i < 8; i++)
             {
-                bool x = true;
-                for (int j = 0; j < frame[4]; j++)
+                bool x = false;
+                for (int j = 0; j < 6 + encrypted_frame.DataCount; j++)
                 {
                     x ^= bin_frame[j * 8 + i];
                 }
                 if (x != verification_bits[i]) columns_error.Add(i);
             }
 
-            for (int k = 0; k < frame[4]; k++)
+            int bitsSkip = 8 - (encrypted_frame.SimpleFrame.Length % 8);
+            for (int k = 0; k < 6 + encrypted_frame.DataCount; k++)
             {
-                bool x = true;
+                bool x = false;
                 for (int i = 0; i < 8; i++)
                 {
                     x ^= bin_frame[k * 8 + i];
                 }
-                if (x != verification_bits[8 + k]) rows_error.Add(k);
+                if (x != verification_bits[8 + bitsSkip + k]) rows_error.Add(k);
             }
             #endregion
 
             #region Si no hubo error, envia el mismo Frame que recibio
-            if (columns_error.Count == 0)
+            if (columns_error.Count == 0 && rows_error.Count == 0)
             {
-                was_fixed = true;
+                was_fixed = false;
                 correct_frame = true;
                 return encrypted_frame;
             }
             #endregion
-
             else
             {
+                correct_frame = false;
                 if(!force_fix)
                 {
-                    correct_frame = false;
                     was_fixed = false;
                     return encrypted_frame;
                 }
@@ -122,7 +127,6 @@ namespace Link_layer
                 #endregion
 
             }
-            correct_frame = false;
             was_fixed = (columns_error.Count == 1 || rows_error.Count == 1);
             return result;
         }
