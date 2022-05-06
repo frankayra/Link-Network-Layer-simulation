@@ -56,6 +56,15 @@ namespace Link_layer
 
         public override Frame Decrypt_andTryToFixFrame(Frame encrypted_frame, out bool was_fixed, out bool correct_frame, bool force_fix = true)
         {
+            #region Si los bytes que indican el tamaño de _data o de los bits de verificacion estan mal, no hay nada que hacer
+            if (!encrypted_frame.IsComplete())
+            {
+                was_fixed = false;
+                correct_frame = false;
+                return encrypted_frame;
+            }
+            #endregion
+
             Frame result = new Frame();
 
             #region Separa la trama en "frame" y "verification_bits"
@@ -100,6 +109,12 @@ namespace Link_layer
                 correct_frame = true;
                 return encrypted_frame;
             }
+            if(columns_error.Count == 0 || rows_error.Count == 0)
+            {
+                was_fixed = false;
+                correct_frame = false;
+                return encrypted_frame;
+            }
             #endregion
             else
             {
@@ -118,10 +133,11 @@ namespace Link_layer
                 for (int i = 0; i < length; i++)
                 {
                     bool one = bin_frame[                  fix_column ?                     rows_error[i] * 8 + columns_error[0] :                          rows_error[0] * 8 + columns_error[i]];       // fix_column ? la fila correspondiente i con la columna prefijada : la columna i correspondiente con la fila ya fijada
-                    frame[fix_column ? rows_error[i] * 8 : rows_error[0] * 8] += (byte)((one ? -1 : 1) * Math.Pow(2, fix_column ? columns_error[0] : columns_error[i]));
+                    frame[fix_column ? rows_error[i] : rows_error[0]] += (byte)((one ? -1 : 1) * Math.Pow(2, 7 - (fix_column ? columns_error[0] : columns_error[i])));
                 }
 
                 result.AddBytes(frame);
+                result.AddBytes(verification_bytes);
                 #endregion
 
             }
