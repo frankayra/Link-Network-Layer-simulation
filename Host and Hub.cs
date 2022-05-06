@@ -26,6 +26,7 @@ namespace Link_layer
         private IEnumerator<Value> enumerator;
         public Value ValueEmited { get; private set; }
         public Value ValueRecived { get; private set; }
+        public string MAC { get; set; }
         private bool emiting;
         public Frame currentFrame;
         public Queue<Frame> FramesRecived;
