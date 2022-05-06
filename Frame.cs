@@ -34,11 +34,7 @@ namespace Link_layer
         public byte[] SimpleFrame => simpleFrame();
 
         private string dataString(){
-            string data = "";
-            for (int i = 6; i < DataCount + 6; i++){
-                data += bytes[i];
-            }
-            return data;
+            return BytesToHex(data());
         }
 
         private byte[] data(){

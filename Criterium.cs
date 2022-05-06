@@ -31,7 +31,7 @@ namespace Link_layer
             encryptedData.AddByte((byte)(_data_.Length / 2));                                           // Convirtiendo de hexadecimal a bytes
             byte verifCount = (byte)((12 + _data_.Length) / 2 / 8);
             verifCount++;
-            if ((_data_.Length / 2) % 8 > 0)            
+            if (((12 + _data_.Length) / 2) % 8 > 0)            
                 verifCount++;            
             encryptedData.AddByte(verifCount);                                  // La cantidad de columnas(8) + la cantidad de filas(* 4 a bits /8 a filas).
             encryptedData.AddBytes(_data_);
@@ -80,6 +80,8 @@ namespace Link_layer
             }
 
             int bitsSkip = 8 - (encrypted_frame.SimpleFrame.Length % 8);
+            if (bitsSkip == 8)
+                bitsSkip = 0;
             for (int k = 0; k < 6 + encrypted_frame.DataCount; k++)
             {
                 bool x = false;
