@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Link_layer
 {
@@ -98,7 +99,12 @@ namespace Link_layer
         }
         static void Main(string[] args)
         {
-            
+
+        }
+
+        public static Value ToValue(this bool b)
+        {
+            return b ? Value.ONE : Value.ZERO;
         }
         
     }

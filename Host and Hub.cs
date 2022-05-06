@@ -86,8 +86,8 @@ namespace Link_layer
                         // Preparado
                         if (secuences.Count > 0){
                             emiting=true;
-                            enumerator = (IEnumerator<Value>)secuences.Peek().GetEnumerator();
-                            stCountOut = Manager.SIGNAL_TIME; 
+                            enumerator = secuences.Peek().GetEnumerator();
+                            stCountOut = Manager.SIGNAL_TIME-1; 
                         }
                     }
                 }
