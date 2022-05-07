@@ -64,6 +64,7 @@ namespace Link_layer
                     for (int i = 0; i < dervice.Adj.Length; i++)
                     {
                         Dervice adj = dervice.Adj[i];
+                        if (adj is null) continue;
                         adj.Recive(dervice.Emit(i), 1, Array.IndexOf(adj.Adj, dervice));
                     }
                     #endregion
