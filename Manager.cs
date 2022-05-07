@@ -75,6 +75,8 @@ namespace Link_layer
                 {
                     #region Si dervice emite algo sumamos su valor a la cantidad de ceros o unos emitiendose en la CC.
                     Value emited = dervice.Emit();
+                    Dervice conected = dervice.Adj[0];
+                    if(conected != null) conected.Recive(emited, 1, Array.IndexOf(conected.Adj, dervice));
                     if (emited != Value.UNACTIVE)
                     {
                         Dervice d = Dervices.ClassRepresentantOf(dervice).Value;
@@ -95,10 +97,11 @@ namespace Link_layer
                     Dervice d_class = Dervices.ClassRepresentantOf(d).Value;
                     for (int i = 0; i < d.Adj.Length; i++)
                     {
+                        if (d.Adj[i] is null) continue;
                         Dervice current_dervice = d.Adj[i];
-                        Value current_dervice_XOR_Emit = !DynamicUse.ContainsKey(d_class) ? Value.UNACTIVE : XOR_PA_TRAS(d_class, d.Adj[i].value);
+                        Value current_dervice_XOR_Emit = !DynamicUse.ContainsKey(d_class) ? Value.UNACTIVE : XOR_PA_TRAS(d_class, ((Host)d.Adj[i]).ValueEmited);
 
-                        current_dervice.Recive(current_dervice_XOR_Emit, DynamicUse[d_class][0] + DynamicUse[d_class][1], i);
+                        current_dervice.Recive(current_dervice_XOR_Emit, DynamicUse.ContainsKey(d_class) ? DynamicUse[d_class][0] + DynamicUse[d_class][1] : 0, i);
                     }
                     #endregion
                 }

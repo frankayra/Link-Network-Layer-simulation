@@ -22,8 +22,8 @@ namespace Link_layer
         private byte byteActual;
         private int bitCount;
 
-        public string SourceMAC => bytes[0].ToString("X") + bytes[1].ToString("X");
-        public string DestinyMAC => bytes[2].ToString("X") + bytes[3].ToString("X");
+        public string SourceMAC => bytes[2].ToString("X") + bytes[3].ToString("X");
+        public string DestinyMAC => bytes[0].ToString("X") + bytes[1].ToString("X");
         public int DataCount  => bytes[4];
         public int VerifCount => bytes[5];
 

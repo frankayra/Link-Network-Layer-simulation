@@ -70,7 +70,7 @@ namespace Link_layer
                 // Colisión
                 if (transmiting_dervices > 2){
                     txt += "colision";
-                    wait_time = randomTime(8);
+                    wait_time = randomTime(48);
                     emiting = false;                    
                 } else{
                     txt += "ok";
@@ -80,12 +80,13 @@ namespace Link_layer
                     // Esperando
                     wait_time--;
                 } else{
-                    if (transmiting_dervices > 2){
+                    if (transmiting_dervices >= 2){
                         wait_time = randomTime(8);
                     }else{
                         // Preparado
                         if (secuences.Count > 0){
                             emiting=true;
+                            Console.WriteLine("Preparado");
                             enumerator = secuences.Peek().GetEnumerator();
                             stCountOut = Manager.SIGNAL_TIME-1; 
                         }
@@ -107,6 +108,7 @@ namespace Link_layer
                         stCountIn --;
                     }else{
                         // Ruido en la trama
+                        Console.WriteLine("Sucia");
                         currentFrame.Clean();
                         stCountIn = Manager.SIGNAL_TIME-1;
                         ValueRecived = value;
@@ -115,11 +117,16 @@ namespace Link_layer
                 }else{
                     currentFrame.AddBit(ValueRecived);
                     if (currentFrame.IsComplete()){
-                        FramesRecived.Enqueue(currentFrame);
-                        currentFrame = new Frame();
+                        if (currentFrame.DestinyMAC == MAC)
+                        {
+                            FramesRecived.Enqueue(currentFrame);
+                            currentFrame = new Frame();
+                        }
                     }
                     stCountIn = Manager.SIGNAL_TIME-1;
                     ValueRecived = value;
+                    if (value == Value.UNACTIVE)
+                        currentFrame.Clean();
                     //recive(value);
                 }
             }else{
