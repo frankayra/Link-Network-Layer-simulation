@@ -40,14 +40,12 @@ namespace Link_layer
 
         public void Send(Frame frame)
         {
-            TwoDimensionalParity t = new TwoDimensionalParity();
-            secuences.Enqueue(t.Encrypt(frame.SourceMAC, frame.DestinyMAC, frame.DataString));
+            secuences.Enqueue(FlowControler.Protocol.Encrypt(frame.SourceMAC, frame.DestinyMAC, frame.DataString));
         }
 
-        public void Send(string sourceMAC, string destinyMAC, string data)
+        public void Send(string destinyMAC, string data)
         {
-            TwoDimensionalParity t = new TwoDimensionalParity();
-            secuences.Enqueue(t.Encrypt(sourceMAC, destinyMAC, data));
+            secuences.Enqueue(FlowControler.Protocol.Encrypt(MAC, destinyMAC, data));
         }
 
         public override Value Emit(int port = 0)
@@ -137,10 +135,9 @@ namespace Link_layer
                     if (currentFrame.IsComplete()){
                         
                         swData.WriteLine(FlowControler.Turn + " " +
-                            name + " org frame " + currentFrame.ToHex());
-                        TwoDimensionalParity t = new TwoDimensionalParity();
+                            name + " org frame " + currentFrame.ToHex());                        
                         bool correct, fix;
-                        Frame dec = t.Decrypt_andTryToFixFrame(currentFrame,out fix,out correct);
+                        Frame dec = FlowControler.Protocol.Decrypt_andTryToFixFrame(currentFrame,out fix,out correct);
                         swData.WriteLine(FlowControler.Turn + " " +
                             name + " dec frame " + dec.ToHex() + " correct " +
                             correct + " fixed " + fix);
