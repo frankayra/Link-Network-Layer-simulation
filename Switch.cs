@@ -61,9 +61,11 @@ namespace Link_layer
                         if (inbox[port].IsComplete()){
                             bool fix, correct;
                             FlowControler.Protocol.Decrypt_andTryToFixFrame(inbox[port], out fix, out correct);
-
-                            AddFrameToQueue(inbox[port],port);
-                            UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
+                            if (correct || fix)
+                            {
+                                AddFrameToQueue(inbox[port],port);
+                                UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
+                            }
                             inbox[port] = new Frame();
                             if (value != Value.UNACTIVE){
                                 inbox[port].AddBit(value);
@@ -81,9 +83,11 @@ namespace Link_layer
                     if (inbox[port].IsComplete()){
                         bool fix, correct;
                         FlowControler.Protocol.Decrypt_andTryToFixFrame(inbox[port], out fix, out correct);
-
-                        AddFrameToQueue(inbox[port],port);
-                        UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
+                        if (correct || fix)
+                        {
+                            AddFrameToQueue(inbox[port], port);
+                            UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
+                        }                        
                         inbox[port] = new Frame();
                         if (value != Value.UNACTIVE){
                             inbox[port].AddBit(value);

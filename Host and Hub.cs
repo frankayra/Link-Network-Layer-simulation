@@ -142,7 +142,7 @@ namespace Link_layer
                             name + " dec frame " + dec.ToHex() + " correct " +
                             correct + " fixed " + fix);
                         swData.Flush();
-                        if (currentFrame.DestinyMAC == MAC)
+                        if (currentFrame.DestinyMAC == MAC || currentFrame.DestinyMAC == "FFFF")
                         {
                             FramesRecived.Enqueue(currentFrame);
                             currentFrame = new Frame();
