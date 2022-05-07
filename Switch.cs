@@ -59,6 +59,9 @@ namespace Link_layer
                     if (value != valueRecived[port]){
                         // Alteración en el mensaje recibido
                         if (inbox[port].IsComplete()){
+                            bool fix, correct;
+                            FlowControler.Protocol.Decrypt_andTryToFixFrame(inbox[port], out fix, out correct);
+
                             AddFrameToQueue(inbox[port],port);
                             UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
                             inbox[port] = new Frame();
@@ -76,6 +79,9 @@ namespace Link_layer
                 }else{
                     // FrameCompletado
                     if (inbox[port].IsComplete()){
+                        bool fix, correct;
+                        FlowControler.Protocol.Decrypt_andTryToFixFrame(inbox[port], out fix, out correct);
+
                         AddFrameToQueue(inbox[port],port);
                         UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
                         inbox[port] = new Frame();
