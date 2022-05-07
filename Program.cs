@@ -136,11 +136,11 @@ namespace Link_layer
                 #region Print Disjoin Sets
                 foreach (var par in Manager.Dervices.Classes)
                 {
-                    Console.WriteLine("CC: |" + par.Key + "|" +
+                    Console.WriteLine("CC: |" + par.Key + "|" + ((par.Key is Host) ?
                                     " | Corrects Frames: " + ((Host)par.Key).FramesRecived.Count +
                                     " | Value Emited: " + ((Host)par.Key).ValueEmited +
                                     " | Value Recived: " + ((Host)par.Key).ValueRecived +
-                                    " | Complete: " + ((Host)par.Key).currentFrame.ToHex());
+                                    " | Complete: " + ((Host)par.Key).currentFrame.ToHex() : ""));
                     Console.WriteLine("-------");
                     foreach (Dervice dervice in Manager.Dervices.ValuesSet)
                     {

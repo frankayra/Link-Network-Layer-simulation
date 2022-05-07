@@ -103,8 +103,8 @@ namespace Link_layer
                         if (secuences.Count > 0){
                             emiting=true;
                             Console.WriteLine("Preparado");
-                            enumerator = secuences.Peek().GetEnumerator();
-                            stCountOut = Manager.SIGNAL_TIME-1; 
+                            enumerator = secuences.Peek().GetEnumerator();                            
+                            stCountOut = 0; 
                         }
                     }
                 }

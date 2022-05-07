@@ -131,6 +131,14 @@ namespace Link_layer
                     Value.ZERO;
             }
             #endregion
+
+            foreach (Dervice dervice in Dervices.ValuesSet)
+            {
+                if(dervice is Switch)
+                {
+                    ((Switch)dervice).DestroyMACs(FlowControler.Turn);
+                }
+            }
         }
 
 

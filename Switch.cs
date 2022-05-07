@@ -160,7 +160,7 @@ namespace Link_layer
             {
                 if(ports_list[i].port == port)
                 {
-                    ports_list[i] = (port, actualTurn + 2000);
+                    ports_list[i] = (port, actualTurn + 100 * Manager.SIGNAL_TIME);
                     return;
                 }
             }
@@ -168,21 +168,26 @@ namespace Link_layer
         }
         public void DestroyMACs(int actualTurn)
         {
+            List<string> ToEliminate = new List<string>();
             foreach (var mac_and_ports in Memo)
             {
-                var ports_list = mac_and_ports.Value;
+                List<(int port, int dead_turn)> ports_list = mac_and_ports.Value;
                 for (int i = 0; i < ports_list.Count; i++)
                 {
                     if(actualTurn == ports_list[i].dead_turn)
                     {
                         ports_list.RemoveAt(i);
-                        if(ports_list.Count == 0)                                                          // Si al eliminar el puerto, la MAC dejo de tener puertos donde se suponia que estaba ubicada.
-                        {
-                            Memo.Remove(mac_and_ports.Key);
-                            break;
-                        }
+                        i--;
                     }
                 }
+                if(ports_list.Count == 0)                                                          // Si al eliminar el puerto, la MAC dejo de tener puertos donde se suponia que estaba ubicada.
+                {
+                    ToEliminate.Add(mac_and_ports.Key);
+                }
+            }
+            foreach (var item in ToEliminate)
+            {
+                Memo.Remove(item);
             }
 
         }
