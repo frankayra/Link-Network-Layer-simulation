@@ -6,9 +6,9 @@ namespace Link_layer
 {
     public static class Manager
     {
-        public static Criterium Error_Protocol;
         public static int SIGNAL_TIME { get; private set; }
         public static Dictionary<string, Dervice> DervicesNames = new Dictionary<string, Dervice>();
+        public static Dictionary<string, Dervice> DervicesMACs = new Dictionary<string, Dervice>();
         public static DisjoinSets<Dervice> Dervices;
 
         private static void StructureD_S(List<Dictionary<Dervice, bool>> CCs, Dervice[] dervices)

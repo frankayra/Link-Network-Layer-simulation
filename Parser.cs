@@ -20,14 +20,19 @@ namespace Link_layer
             switch (command_[1])
             {
                 case "send_frame":
-                    if (!Manager.DervicesNames.ContainsKey(command_[2])) return false;
-                    if (!(Manager.DervicesNames[command_[2]] is Host)) return false;
+                    if (execute && !Manager.DervicesNames.ContainsKey(command_[2])) return false;
+                    if (execute && !(Manager.DervicesNames[command_[2]] is Host)) return false;
                     if (execute) Send_Frame_Handler((Host)(Manager.DervicesNames[command_[2]]), command_[3], command_[4]);
                     break;
                 case "mac":
                     if (!Manager.DervicesNames.ContainsKey(command_[2]) || !(Manager.DervicesNames[command_[2]] is Host)) return false;
                     if (command_[3].Length != 4) return false;
-                    if(execute)((Host)(Manager.DervicesNames[command_[2]])).MAC = command_[3];
+                    if(execute)
+                    {
+                        ((Host)(Manager.DervicesNames[command_[2]])).MAC = command_[3];
+                        Manager.DervicesMACs[command_[3]] = Manager.DervicesNames[command_[2]];
+                    }
+
                     break;
                 case "create":
                     switch (command_[2])
@@ -163,7 +168,7 @@ namespace Link_layer
         }
         private static void Send_Frame_Handler(Host source_host, string destiny_mac, string _data)
         {
-            source_host.Send(Manager.Error_Protocol.Encrypt(source_host.MAC, destiny_mac, _data));
+            source_host.Send(FlowControler.Protocol.Encrypt(source_host.MAC, destiny_mac, _data));
         }
 
         private enum DerviceType { Hub, Host, Switch}
