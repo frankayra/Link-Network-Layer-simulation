@@ -13,7 +13,8 @@ namespace Link_layer
             wait_time = 0;
             stCountOut = 0;
             emiting = false;
-            sw = new StreamWriter(this.name + ".txt");
+            sw = new StreamWriter("output/" + this.name + ".txt");
+            swData = new StreamWriter("output/" + this.name + "_data.txt");
             secuences = new Queue<IEnumerable<Value>>();
             currentFrame = new Frame();
             FramesRecived =  new Queue<Frame>();
@@ -30,11 +31,23 @@ namespace Link_layer
         private bool emiting;
         public Frame currentFrame;
         public Queue<Frame> FramesRecived;
-        private StreamWriter sw;
+        private StreamWriter sw, swData;
 
         public void Send(IEnumerable<Value> values)
         {
             secuences.Enqueue(values);
+        }
+
+        public void Send(Frame frame)
+        {
+            TwoDimensionalParity t = new TwoDimensionalParity();
+            secuences.Enqueue(t.Encrypt(frame.SourceMAC, frame.DestinyMAC, frame.DataString));
+        }
+
+        public void Send(string sourceMAC, string destinyMAC, string data)
+        {
+            TwoDimensionalParity t = new TwoDimensionalParity();
+            secuences.Enqueue(t.Encrypt(sourceMAC, destinyMAC, data));
         }
 
         public override Value Emit(int port = 0)
@@ -65,7 +78,12 @@ namespace Link_layer
         public override void Recive(Value value, int transmiting_dervices, int port = 0)
         {   
             string txt = "";
-            if (emiting){
+            if (value != Value.UNACTIVE)
+            {
+                txt += FlowControler.Turn + " " + this.name + " recive " + value;
+                sw.WriteLine(txt);
+            }
+            if (emiting){                
                 txt = FlowControler.Turn + " " + this.name + " send " + ValueEmited + " " ;
                 // Colisión
                 if (transmiting_dervices > 2){
@@ -92,16 +110,16 @@ namespace Link_layer
                         }
                     }
                 }
-            }
-            if (value != Value.UNACTIVE){
-                txt += "\n" + FlowControler.Turn + " " + this.name + " recive " + ValueEmited;
-            }
+            }            
             recive(value);
-            sw.WriteLine(txt);
+            if (txt != "")
+            {
+                sw.WriteLine(txt);
+            }
             sw.Flush();
         }
 
-        private void recive(Value value){
+        private void recive(Value value) {
             if (ValueRecived != Value.UNACTIVE){
                 if (stCountIn > 0) {
                     if (ValueRecived == value){
@@ -117,11 +135,22 @@ namespace Link_layer
                 }else{
                     currentFrame.AddBit(ValueRecived);
                     if (currentFrame.IsComplete()){
+                        
+                        swData.WriteLine(FlowControler.Turn + " " +
+                            name + " org frame " + currentFrame.ToHex());
+                        TwoDimensionalParity t = new TwoDimensionalParity();
+                        bool correct, fix;
+                        Frame dec = t.Decrypt_andTryToFixFrame(currentFrame,out fix,out correct);
+                        swData.WriteLine(FlowControler.Turn + " " +
+                            name + " dec frame " + dec.ToHex() + " correct " +
+                            correct + " fixed " + fix);
+                        swData.Flush();
                         if (currentFrame.DestinyMAC == MAC)
                         {
                             FramesRecived.Enqueue(currentFrame);
                             currentFrame = new Frame();
-                        }
+                        }else
+                            currentFrame.Clean();
                     }
                     stCountIn = Manager.SIGNAL_TIME-1;
                     ValueRecived = value;

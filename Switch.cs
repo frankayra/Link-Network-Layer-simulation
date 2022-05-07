@@ -9,11 +9,11 @@ namespace Link_layer
     public class Switch : Dervice
     {
         #region Constructor and Properties
-        int store_bits_count = 0;
+        
         List<Value> frame = new List<Value>();
         Dictionary<string, List<(int port, int dead_turn)>> Memo = new Dictionary<string, List<(int port, int dead_turn)>>();                                            //
         List<Queue<List<Value>>> PortsQueues = new List<Queue<List<Value>>>();                  //
-                public Switch(int ports, string name) : base(ports, name) {
+        public Switch(int ports, string name) : base(ports, name) {
 
             inbox = new Frame[ports];
             outbox = new IEnumerator<Value>[ports];
@@ -59,8 +59,8 @@ namespace Link_layer
                     if (value != valueRecived[port]){
                         // Alteración en el mensaje recibido
                         if (inbox[port].IsComplete()){
+                            AddFrameToQueue(inbox[port],port);
                             UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
-                            AddFrameToQueue(inbox[port]);
                             inbox[port] = new Frame();
                             if (value != Value.UNACTIVE){
                                 inbox[port].AddBit(value);
@@ -76,8 +76,8 @@ namespace Link_layer
                 }else{
                     // FrameCompletado
                     if (inbox[port].IsComplete()){
+                        AddFrameToQueue(inbox[port],port);
                         UpdateMAC(inbox[port].SourceMAC, port, FlowControler.Turn);
-                        AddFrameToQueue(inbox[port]);
                         inbox[port] = new Frame();
                         if (value != Value.UNACTIVE){
                             inbox[port].AddBit(value);
@@ -103,9 +103,11 @@ namespace Link_layer
             //Console.WriteLine(valueRecived[0]);
         }
 
-        private void AddFrameToQueue(Frame f){
+        private void AddFrameToQueue(Frame f,int portSource)   {            
             foreach (int port in PortsToSend(f.DestinyMAC))
             {
+                if (port == portSource)
+                    continue;
                 queueOutbox[port].Enqueue(f);
             }
         }
@@ -180,7 +182,7 @@ namespace Link_layer
         }
         public int[] PortsToSend(string mac)
         {
-            if(!Memo.ContainsKey(mac))
+            if(!Memo.ContainsKey(mac) || mac == "FFFF")
             {
                 int[] all_ports = new int[Adj.Length];
                 for (int i = 1; i < all_ports.Length; i++)
