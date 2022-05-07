@@ -190,10 +190,6 @@ namespace Link_layer
                 Console.WriteLine("-------");
                 foreach (Dervice dervice in D_S.ValuesSet)
                 {
-                    //if(D_S.ClassRepresentantOf(dervice).Value.Equals(par.Key))
-                    //{
-                    //    Console.WriteLine("  |---> " + dervice);
-                    //}
                     for (int i = 0; i < dervice.Adj.Length; i++)
                     {
                         if(dervice.Adj[i] != null && (!D_S.ClassRepresentantOf(dervice.Adj[i]).Value.Equals(dervice)) && D_S.ClassRepresentantOf(dervice.Adj[i]).Value.Equals(par.Key))

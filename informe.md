@@ -1,4 +1,12 @@
-#<center>Informe Proyecto Capa de Enlace</center>
+<style>
+    .line
+    {
+        background-color: red;
+        height: 1px;
+    }
+</style>
+
+# <center>Informe Proyecto Capa de Enlace</center>
 <center><h3>Equipo 15</h3>💬 Francisco Ayra Cáceres </br> 💬 Lázaro Daniel González </center>
 
 ![Imagen](Example.png)
@@ -30,5 +38,11 @@ En caso de haber colision en una CC, y esta este conectada a un switch, los dato
 <div style = "height: 1px; background-color: #1C9997"></div>
 
 **🔻 <font color = "1C9997">Cambios en el Protocolo</font>**
-Es sabido que en la capa fisica implementamos un protocolo para cada **host**, que se encargaba de detectar colisiones y en general era uno de los conocidos protocolos **ALOHA** con tiempo random de espera. Para detectar colisiones, cuando un dispositivo enviaba, se hallaba un XOR entre los valores que transmitian los dispositivos en una misma componente conexa, en cada componente conexa(CC); y luego, el metodo <font color = "C3D488"> Recive()</font> se invocaba en cada dispositivo, pasandole como parametro el valor resultante de hacer XOR a los valores de los dispositivos  que estuviesen transmitiendo, de su componente conexa.
-Pero en este caso, al tener el requerimiento de que un host pueda estar transmitiendo un bit y reciviendo otro sin que sea considerado una colision, no se hara XOR entre todos los <font color = "1C9997">Dervice</font>'s de una misma CC, se hara XOR entre los n-1 valores de los n-1 otros dispositivos que esten transmitiendo en esa misma CC. Por tanto, nos sera dificil simular este comportamento, al menos eficientemente, por lo que, para no obtener una complejidad de **$\Theta(m * \frac{n(n-1))}{2})$** solamente para obtener que valor llegaria a cada host; donde **m** es la cantidad de conexiones en la CC y **n** es la cantidad de dispositivos transmitiendo en dicha CC; debemos almacenar que emite cada Host usando tecnicas de dinamismo para calcular rapido eso.
+Es sabido que en la capa fisica implementamos un protocolo para cada **host**, que se encargaba de detectar colisiones y en general era uno de los conocidos protocolos **ALOHA** con tiempo random de espera. Para detectar colisiones, cuando un dispositivo enviaba, se hallaba un XOR entre los valores que transmitian los dispositivos en una misma componente conexa, en cada componente conexa(CC); y luego, el metodo <font color = "C3D488"> Recive()</font> se invocaba en cada dispositivo, pasandole como parametro el valor resultante de hacer XOR a los valores de los dispositivos  que estuviesen transmitiendo, de su componente conexa (incluyéndolo a él).
+Pero en este caso, al tener el requerimiento de que un host pueda estar transmitiendo un bit y recibiendo otro sin que sea considerado una colision, no se hara XOR entre todos los <font color = "1C9997">Dervice</font>'s de una misma CC, se hara XOR entre los n-1 valores de los n-1 otros dispositivos que esten transmitiendo en esa misma CC. Por tanto, nos sera dificil simular este comportamento, al menos eficientemente, por lo que, para no obtener una complejidad muy significativa solamente para obtener que valor llegaria a cada host; donde, debemos almacenar que emite cada Host y usando tecnicas dinamicas podemos calcular rapido eso (formara parte entonces del protocolo de los dispositivos). Se sigue mantendiendo el protocolo implementado anteriormente para los Hosts, un ALOHA no persistente(no vuelve a enviar hasta que no este libre el canal) y con espera aleatoria de tiempo en caso de detectar una colision.
+
+<div style = "height: 1px; background-color: red"></div>
+
+**🔻 <font color = "1C9997">Cosas a tener en cuenta en la ejecucion</font>** 
+Debido a la dificultad para simular el paso real de corriente por los cables y dispositivos, decidimos para una mejor simulacion, regular de la siguiente manera, como estara conformada una Componente Conexa cualquiera:
+- No existira mas de un Hub en una misma CC. Esta regulacion se debe a lo anteriormente dicho y tambien a que 

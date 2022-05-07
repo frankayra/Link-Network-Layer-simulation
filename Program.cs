@@ -3,14 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Link_layer
 {
-
+    public enum Interfacee { SIMPLE, BLOCKS }
     public enum Value { UNACTIVE, ZERO, ONE }
 
     public static class FlowControler
     {
+        public static Interfacee View = Interfacee.SIMPLE;
         private static Random random = new Random();
         public static double RandomDouble => random.NextDouble();
 
@@ -22,6 +24,8 @@ namespace Link_layer
         public static string SCRIPT_PATH = "script.txt";
         public static string CONFIG_PATH = "config.txt";
         public static int TemporalSIgnalTime = 0;
+
+        public static Criterium Protocol;
 
         public static void ReadTxt(string path)
         {
@@ -56,9 +60,25 @@ namespace Link_layer
             StreamReader sr = new StreamReader(CONFIG_PATH);
             string line = sr.ReadLine();
             string[] line_splited = line.Split();
+            bool error = true;
             if (line_splited.Length < 2) throw new Exception("Error de config.txt");
-            if (!(line_splited[0] == "signal_time" && int.TryParse(line_splited[1], out TemporalSIgnalTime)))
-                throw new Exception("Error de config.txt");
+            if (line_splited[0] == "signal_time" && int.TryParse(line_splited[1], out TemporalSIgnalTime))
+            {
+                string[] line2_splited = sr.ReadLine().Split();
+                if(line2_splited[0] == "error_detection")
+                {
+                    switch (line2_splited[1])
+                    {
+                        case "TwoDimParity":
+                            FlowControler.Protocol = new TwoDimensionalParity();
+                            break;
+                        default:
+                            throw new Exception("Error en config.txt");
+                    }
+                    error = false;
+                }
+            }
+            if(error) throw new Exception("Error en config.txt");
         }
 
         public static bool MoveNext(bool force_next = false)
@@ -75,7 +95,6 @@ namespace Link_layer
                 }
             }
             Manager.Send();
-            Console.WriteLine($"Turno {Turn} terminado");
             Turn++;
             return true;
         }
@@ -99,92 +118,80 @@ namespace Link_layer
         }
         static void Main(string[] args)
         {
-            #region Prueba 1
-            //Frame f = new Frame("AABBCCDD");
-            //Console.WriteLine(2.ToString("X"));
+            FlowControler.ReadTxt(FlowControler.SCRIPT_PATH);
+            FlowControler.ReadConfig(FlowControler.CONFIG_PATH);
 
-            //Frame enc = new Frame();
-            //Frame dec;
-
-            //Console.WriteLine(enc.ToHex());
-            //bool b1, b2;
-            //Frame fmal = new Frame("AABBCCDD0202E42CC80D");
-            //dec = tsp.Decrypt_andTryToFixFrame(fmal, was_fixed: out b1, correct_frame: out b2);
-            //Console.WriteLine(dec.ToHex());
-            //Console.WriteLine("Arreglado: " + b1);
-            //Console.WriteLine("Correcto: " + b2);
-
-            //Console.ReadKey();
-            #endregion
-
-            List<Dervice> dervices = new List<Dervice>();
-            #region Prueba 2
-            //dervices.Add(new Host("PC1"));
-            //dervices.Add(new Host("PC2"));
-            //dervices.Add(new Host("PC3"));
-            //dervices.Add(new Host("PC4"));
-            //dervices.Add(new Host("PC5"));
-            //dervices.Add(new Hub(3, "h1"));
-            //dervices.Add(new Hub(3, "h2"));
-            //dervices.Add(new Hub(3, "h3"));
-            //dervices.Add(new Switch(3, "S1"));
-            //dervices.Add(new Switch(3, "S2"));
-
-            //Dervice.cc(dervices[0], dervices[1], 0, 0);
-            //Dervice.cc(dervices[8], dervices[2], 0 , 0);
-            //Dervice.cc(dervices[8], dervices[3], 1, 0);
-            #endregion
-
-            #region Prueba 3
-
-            dervices.Add(new Host("PC1"));
-            dervices.Add(new Host("PC2"));
-            dervices.Add(new Host("PC3"));
-
-            dervices.Add(new Hub(3, "h"));
-            dervices.Add(new Switch(3, "S1"));
-
-            //////////////////////////////////////////////////////////////////////////////
-
-            Dervice.cc(dervices[0], dervices[4], 0, 0);
-            Dervice.cc(dervices[4], dervices[1], 1, 0);
-            Dervice.cc(dervices[4], dervices[2], 2, 0);
-
-            ((Host)dervices[0]).MAC = "AAAA";
-            ((Host)dervices[1]).MAC = "BBBB";                             //
-            ((Host)dervices[2]).MAC = "CCCC";
-
-            ((Host)dervices[0]).Send(new Frame("CCCCAAAA02023AF8C20D"));           // CCCC--AAAA--0202--3AF8--C2--0D
-            //((Host)dervices[2]).Send(new Frame("CCDDAABB0202F3B1420C"));
-            //((Host)dervices[3]).Send(new Frame("AABBEEFF0202A580250D"));
-
-            #endregion
-
-            Manager.Initialize(dervices, 1);
-            DisjoinSets<Dervice>.Print(Manager.Dervices);
-            int i = 0;
-            while (true)
+            int automatic_turns = 0;
+            int simulation_time = 100;
+            string readline = "";
+            while((automatic_turns > 0 || ((readline = Console.ReadLine()) != "exit"))  &&  FlowControler.MoveNext())
             {
-
-                FlowControler.MoveNext();
-                foreach (var disp in Manager.Dervices.ValuesSet)
+                if (automatic_turns > 0)
                 {
-                    if(disp is Host)Console.WriteLine(disp.name + ": ----> cf: " + ((Host)disp).FramesRecived.Count +
-                        "   value_emited: " + ((Host)disp).ValueEmited + "   value_recived: " + ((Host)disp).ValueRecived +
-                        " Complete: " + ((Host)disp).currentFrame.ToHex());
+                    automatic_turns--;
+                    Thread.Sleep(simulation_time);
                 }
-                Console.WriteLine(i);
-                Console.ReadKey();
-                i++;
+                if (readline == "auto") automatic_turns = 100;
+
+                #region Print Disjoin Sets
+                foreach (var par in Manager.Dervices.Classes)
+                {
+                    Console.WriteLine("CC: |" + par.Key + "|" +
+                                    " | Corrects Frames: " + ((Host)par.Key).FramesRecived.Count +
+                                    " | Value Emited: " + ((Host)par.Key).ValueEmited +
+                                    " | Value Recived: " + ((Host)par.Key).ValueRecived +
+                                    " | Complete: " + ((Host)par.Key).currentFrame.ToHex());
+                    Console.WriteLine("-------");
+                    foreach (Dervice dervice in Manager.Dervices.ValuesSet)
+                    {
+                        for (int i = 0; i < dervice.Adj.Length; i++)
+                        {
+                            if (dervice.Adj[i] != null && (!Manager.Dervices.ClassRepresentantOf(dervice.Adj[i]).Value.Equals(dervice)) && Manager.Dervices.ClassRepresentantOf(dervice.Adj[i]).Value.Equals(par.Key))
+                            {
+                                switch (FlowControler.View)
+                                {
+                                    case Interfacee.SIMPLE:
+                                        Console.Write("|---> " + dervice);
+                                        if (dervice is Host)
+                                        {
+                                            Console.Write("|| Corrects Frames: " + ((Host)dervice).FramesRecived.Count);
+                                            Console.Write("|| Value Emited: " + ((Host)dervice).ValueEmited);
+                                            Console.Write("|| Value Recived: " + ((Host)dervice).ValueRecived);
+                                            Console.WriteLine("|| Complete: " + ((Host)dervice).currentFrame.ToHex());
+                                            Console.WriteLine("|| ----");
+                                        }
+                                        else Console.WriteLine("\n|| ----");
+                                        break;
+                                    case Interfacee.BLOCKS:
+                                        Console.WriteLine("|---> " + dervice);
+                                        if (dervice is Host)
+                                        {
+                                            Console.WriteLine("|| Corrects Frames: " + ((Host)dervice).FramesRecived.Count);
+                                            Console.WriteLine("|| Value Emited: " + ((Host)dervice).ValueEmited);
+                                            Console.WriteLine("|| Value Recived: " + ((Host)dervice).ValueRecived);
+                                            Console.WriteLine("|| Complete: " + ((Host)dervice).currentFrame.ToHex());
+                                            Console.WriteLine("|| ----");
+                                        }
+                                        break;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                Console.WriteLine($"Turno {FlowControler.Turn} terminado");
+                Console.WriteLine("\n\n");
+
+                #endregion
+
+
             }
+
         }
 
         public static Value ToValue(this bool b)
         {
             return b ? Value.ONE : Value.ZERO;
-            TwoDimensionalParity tsp = new TwoDimensionalParity();
-
-
         }
         
     }
