@@ -25,6 +25,7 @@ namespace Link_layer
                     if (execute) Send_Frame_Handler((Host)(Manager.DervicesNames[command_[2]]), command_[3], command_[4]);
                     break;
                 case "mac":
+                    if (!execute) return true;
                     if (!Manager.DervicesNames.ContainsKey(command_[2]) || !(Manager.DervicesNames[command_[2]] is Host)) return false;
                     if (command_[3].Length != 4) return false;
                     if(execute)
@@ -168,7 +169,7 @@ namespace Link_layer
         }
         private static void Send_Frame_Handler(Host source_host, string destiny_mac, string _data)
         {
-            source_host.Send(FlowControler.Protocol.Encrypt(source_host.MAC, destiny_mac, _data));
+            source_host.Send(destiny_mac, _data);
         }
 
         private enum DerviceType { Hub, Host, Switch}
